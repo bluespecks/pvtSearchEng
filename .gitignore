@@ -65,3 +65,8 @@ secrets/
 # SearXNG local configuration
 # =========================
 searxng-instance/core-config/settings.yml
+
+# =========================
+# direnv
+# =========================
+.envrc
