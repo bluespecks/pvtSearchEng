@@ -1,0 +1,67 @@
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# =========================
+# Node / frontend
+# =========================
+node_modules/
+dist/
+build/
+.next/
+.vite/
+
+# =========================
+# IDE / editor
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Databases / runtime data
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+data/
+cache/
+
+# =========================
+# Secrets / certificates
+# =========================
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# =========================
+# SearXNG local configuration
+# =========================
+searxng-instance/core-config/settings.yml
