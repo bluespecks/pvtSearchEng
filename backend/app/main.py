@@ -23,7 +23,6 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
-
 @app.get("/search")
 async def search(q: str = Query(..., min_length=1)):
     async with httpx.AsyncClient() as client:
@@ -34,6 +33,25 @@ async def search(q: str = Query(..., min_length=1)):
                 "format": "json",
             },
         )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    results = []
+
+    for result in data.get("results", []):
+        results.append({
+            "title": result.get("title", ""),
+            "url": result.get("url", ""),
+            "description": result.get("content", ""),
+            "source": ", ".join(result.get("engines", [])),
+        })
+
+    return {
+        "query": q,
+        "results": results,
+    }
 
     response.raise_for_status()
 
