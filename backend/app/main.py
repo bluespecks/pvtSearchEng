@@ -1,3 +1,5 @@
+import os
+
 import httpx
 from fastapi import FastAPI, Query
 
@@ -7,11 +9,20 @@ app = FastAPI(
     version="0.1.0",
 )
 
-SEARXNG_URL = "http://localhost:8080"
+SEARXNG_URL = os.getenv(
+    "SEARXNG_URL",
+    "http://localhost:8080",
+)
 
 
 def calculate_score(query, result):
     score = 0
+    breakdown = {
+        "phrase_title": 0,
+        "phrase_description": 0,
+        "word_title": 0,
+        "word_description": 0,
+    }
 
     query_words = query.lower().split()
     title = result["title"].lower()
@@ -19,18 +30,22 @@ def calculate_score(query, result):
 
     if query.lower() in title:
         score += 5
+        breakdown["phrase_title"] = 5
 
     if query.lower() in description:
         score += 2
+        breakdown["phrase_description"] = 2
 
     for word in query_words:
         if word in title:
             score += 3
+            breakdown["word_title"] += 3
 
         if word in description:
             score += 1
+            breakdown["word_description"] += 1
 
-    return score
+    return score, breakdown
 
 
 @app.get("/")
@@ -91,10 +106,10 @@ async def search(q: str = Query(..., min_length=1)):
             "searx_score": result.get("score", 0),
         }
 
-        normalized["score"] = (
-            calculate_score(q, normalized)
-            + normalized["searx_score"]
-        )
+        score, breakdown = calculate_score(q, normalized)
+
+        normalized["score"] = score + normalized["searx_score"]
+        normalized["ranking"] = breakdown
 
         seen[url] = normalized
         results.append(normalized)
