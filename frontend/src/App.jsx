@@ -1,121 +1,150 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
 
+const MatrixLoader = () => {
+  return (
+    <div className="ai-matrix-loader-container">
+      <div className="ai-matrix-loader">
+        <div className="digit">0</div>
+        <div className="digit">1</div>
+        <div className="digit">0</div>
+        <div className="digit">1</div>
+        <div className="digit">1</div>
+        <div className="digit">0</div>
+        <div className="digit">0</div>
+        <div className="digit">1</div>
+        <div className="glow"></div>
+      </div>
+    </div>
+  )
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [meta, setMeta] = useState(null)
+
+  const [hasSearched, setHasSearched] = useState(false)
+
+  const handleSearch = async (e) => {
+    if (e) e.preventDefault()
+    const trimmed = query.trim()
+    if (!trimmed || loading) return
+
+    setLoading(true)
+    setError(null)
+    // Do NOT setResults(null) right away so we don't snap back to home layout if we were in results mode
+
+    const startTime = performance.now()
+
+    try {
+      const response = await fetch(`http://localhost:8000/search?q=${encodeURIComponent(trimmed)}`)
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`)
+      }
+      const data = await response.json()
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2)
+      const resList = data.results || []
+
+      setResults(resList)
+      setMeta({
+        count: resList.length,
+        time: `${elapsed}s`,
+        query: trimmed,
+      })
+      setHasSearched(true)
+    } catch (err) {
+      setError(err.message || 'Failed to fetch search results')
+      setHasSearched(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // If we haven't completed a search yet, we stay in 'home-mode'
+  const isHome = !hasSearched
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className={`app ${isHome ? 'home-mode' : 'results-mode'}`}>
+      <header className="header">
+        <span className="logo">pvtsearcheng</span>
+        <span className="version">v0.1</span>
+      </header>
 
-      <div className="ticks"></div>
+      <main className="main">
+        <form onSubmit={handleSearch} className="search-container">
+          <div className="search-wrapper">
+            <span className="prompt">{'>'}</span>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="search the web..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+            />
+            <button type="submit" className="search-button" aria-label="Search">
+              ↵
+            </button>
+          </div>
+        </form>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {loading && <MatrixLoader />}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {error && (
+          <div className="status-message error">
+            error: {error}
+          </div>
+        )}
+
+        {!loading && !error && meta && (
+          <div className="meta">
+            <span>{meta.count} results</span>
+            <span className="separator">·</span>
+            <span>{meta.time}</span>
+          </div>
+        )}
+
+        {!loading && !error && results && results.length === 0 && (
+          <div className="status-message">
+            0 results found for "{meta?.query}"
+          </div>
+        )}
+
+        {!loading && !error && results && results.length > 0 && (
+          <div className="results">
+            {results.map((result, index) => (
+              <div key={index} className="result">
+                <div className="result-header">
+                  <a
+                    href={result.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="result-title-link"
+                  >
+                    <h3 className="result-title">{result.title}</h3>
+                  </a>
+                  {result.source && (
+                    <span className="result-source">[{result.source}]</span>
+                  )}
+                </div>
+                <a
+                  href={result.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="result-url"
+                >
+                  {result.url}
+                </a>
+                <p className="result-description">{result.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
   )
 }
 
