@@ -10,6 +10,29 @@ app = FastAPI(
 SEARXNG_URL = "http://localhost:8080"
 
 
+def calculate_score(query, result):
+    score = 0
+
+    query_words = query.lower().split()
+    title = result["title"].lower()
+    description = result["description"].lower()
+
+    if query.lower() in title:
+        score += 5
+
+    if query.lower() in description:
+        score += 2
+
+    for word in query_words:
+        if word in title:
+            score += 3
+
+        if word in description:
+            score += 1
+
+    return score
+
+
 @app.get("/")
 async def root():
     return {
@@ -65,10 +88,21 @@ async def search(q: str = Query(..., min_length=1)):
             "url": url,
             "description": result.get("content", ""),
             "source": ", ".join(result.get("engines", [])),
+            "searx_score": result.get("score", 0),
         }
+
+        normalized["score"] = (
+            calculate_score(q, normalized)
+            + normalized["searx_score"]
+        )
 
         seen[url] = normalized
         results.append(normalized)
+
+    results.sort(
+        key=lambda result: result["score"],
+        reverse=True,
+    )
 
     return {
         "query": q,
