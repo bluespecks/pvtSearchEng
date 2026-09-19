@@ -63,7 +63,10 @@ async def health():
 
 
 @app.get("/search")
-async def search(q: str = Query(..., min_length=1)):
+async def search(
+    q: str = Query(..., min_length=1),
+    debug: bool = False,
+):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{SEARXNG_URL}/search",
@@ -118,6 +121,10 @@ async def search(q: str = Query(..., min_length=1)):
         key=lambda result: result["score"],
         reverse=True,
     )
+
+    if not debug:
+        for result in results:
+            result.pop("ranking", None)
 
     return {
         "query": q,
