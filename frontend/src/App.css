@@ -6,9 +6,9 @@
   --text-secondary: #b0b0b0;
   --text-tertiary: #808080;
   --border: #2a2a2a;
-  --accent: #3a8fff;
-  --accent-muted: #2a6dc7;
-  --success: rgba(0, 200, 83, 0.8);
+  --accent: #3aff4a;
+  --accent-muted: #15ce1e;
+  --success: rgba(0, 208, 87, 0.784);
   --success-glow: rgba(0, 200, 83, 0.15);
   --warning: #ffab00;
   --danger: #ff5252;
