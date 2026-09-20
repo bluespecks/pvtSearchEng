@@ -1,7 +1,7 @@
 import os
 
 import httpx
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -79,18 +79,28 @@ async def search(
     q: str = Query(..., min_length=1),
     debug: bool = False,
 ):
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{SEARXNG_URL}/search",
-            params={
-                "q": q,
-                "format": "json",
-            },
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"{SEARXNG_URL}/search",
+                params={
+                    "q": q,
+                    "format": "json",
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+    except (httpx.HTTPError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Search service unavailable",
         )
 
-    response.raise_for_status()
-
-    data = response.json()
+    if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Search service unavailable",
+        )
 
     results = []
     seen = {}
