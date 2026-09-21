@@ -70,3 +70,8 @@ searxng-instance/core-config/settings.yml
 # direnv
 # =========================
 .envrc
+
+# =========================
+# Internal Docs
+# =========================
+development_notes.md
