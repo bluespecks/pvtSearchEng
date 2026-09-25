@@ -130,14 +130,9 @@ function App() {
                     <span className="result-source">[{result.source}]</span>
                   )}
                 </div>
-                <a
-                  href={result.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="result-url"
-                >
+                <span className="result-url">
                   {result.url}
-                </a>
+                </span>
                 <p className="result-description">{result.description}</p>
               </div>
             ))}
