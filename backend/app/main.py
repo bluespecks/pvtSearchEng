@@ -74,6 +74,7 @@ async def health():
 @app.get("/search")
 async def search(
     q: str = Query(..., min_length=1),
+    page: int = Query(1, ge=1),
     debug: bool = False,
 ):
     try:
@@ -83,6 +84,7 @@ async def search(
                 params={
                     "q": q,
                     "format": "json",
+                    "pageno": page,
                 },
             )
             response.raise_for_status()
